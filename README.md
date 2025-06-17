@@ -1,72 +1,132 @@
-# Eureka Server
 
-This is a Spring Cloud Eureka Server implementation that serves as a service discovery server for microservices architecture.
 
-## Overview
+# 🎯 Eureka Server
 
-The Eureka Server is a crucial component in microservices architecture that enables service discovery and registration. It allows microservices to register themselves and discover other services in the network.
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)]()
 
-## Technical Stack
+> Netflix Eureka Server for service discovery and registration in the Task Management Platform.
 
-- Java 17
-- Spring Boot 3.4.4
-- Spring Cloud 2024.0.1
-- Netflix Eureka Server
+## 🎯 Service Overview
 
-## Configuration
+Eureka Server provides:
+- **Service Registration**: Microservices register themselves
+- **Service Discovery**: Services locate each other
+- **Health Monitoring**: Tracks service health status
+- **Load Balancing**: Enables client-side load balancing
+- **Fault Tolerance**: Handles service failures gracefully
 
-The server is configured with the following properties:
-- Server Port: 8762
-- Application Name: discovery-service
-- Eureka Client Configuration:
-  - Self-registration disabled
-  - Registry fetching disabled
-- Logging Level: INFO for Eureka components
+## 🚀 Quick Start
 
-## Dependencies
-
-The project uses the following main dependencies:
-- spring-boot-starter-web
-- spring-cloud-starter-netflix-eureka-client
-- spring-cloud-starter-netflix-eureka-server
-
-## Building and Running
-
-### Prerequisites
-- Java 17 or higher
-- Maven
-
-### Build
 ```bash
-mvn clean install
-```
+# Clone and navigate
+cd eureka-server
 
-### Run
-```bash
+# Run the service
 mvn spring-boot:run
+
+# Access Eureka Dashboard
+open http://localhost:8761
 ```
 
-## Docker Support
+## 🔧 Configuration
 
-The project includes Docker support with:
-- Dockerfile for containerization
-- .dockerignore for excluding unnecessary files
-- settings.xml for Maven configuration
+### application.yml
 
-## Accessing the Eureka Dashboard
+```yaml
+server:
+  port: 8761
 
-Once the server is running, you can access the Eureka dashboard at:
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 4000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env
+
+logging:
+  level:
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
 ```
-http://localhost:8762
+
+## 📊 Dashboard
+
+Access the Eureka Dashboard at `http://localhost:8761` to view:
+- Registered services
+- Service instances
+- Health status
+- Configuration details
+
+## 🐳 Docker Support
+
+### API Gateway Dockerfile
+```dockerfile
+FROM openjdk:17-jre-slim
+COPY target/api-gateway-1.0.0.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app.jar"]
 ```
 
-## Development
+### Eureka Server Dockerfile
+```dockerfile
+FROM openjdk:17-jre-slim
+COPY target/eureka-server-1.0.0.jar app.jar
+EXPOSE 8761
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+```
 
-This project uses:
-- Maven for dependency management and build
-- Spring Boot for application framework
-- Spring Cloud Netflix Eureka for service discovery
+## 🔄 Service Registration Flow
 
-## License
+1. **Service Startup**: Each microservice starts and registers with Eureka
+2. **Health Checks**: Eureka monitors service health via heartbeats
+3. **Service Discovery**: API Gateway discovers services through Eureka
+4. **Load Balancing**: Gateway distributes requests across healthy instances
+5. **Failure Handling**: Eureka removes unhealthy instances from registry
 
-This project is licensed under the standard Spring Boot license.
+## 🚀 Production Deployment
+
+### High Availability Setup
+
+```yaml
+# Eureka Cluster Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka1:8761/eureka/,http://eureka2:8762/eureka/
+  server:
+    enable-self-preservation: true
+```
+
+### Security Configuration
+
+```yaml
+security:
+  basic:
+    enabled: true
+  user:
+    name: ${EUREKA_USERNAME:admin}
+    password: ${EUREKA_PASSWORD:password}
+```
+
+## 📚 Related Documentation
+
+- [Main Project README](../README.md)
+- [User Service](../user-service/README.md)
+- [Task Service](../task-service/README.md)
+- [Notification Service](../notification-service/README.md)
